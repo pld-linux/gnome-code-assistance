@@ -1,3 +1,14 @@
+#
+# Conditional build:
+%bcond_without	llvm	# (LLVM based) C backend
+%bcond_without	golang	# Go backend
+#
+%ifarch x32 ppc64
+%undefine	with_llvm
+%endif
+%ifnarch %{ix86} %{x8664} %{arm}
+%undefine	with_golang
+%endif
 Summary:	Common code assistance services for code editors
 Summary(pl.UTF-8):	Wspólne usługi wspierające pracę z kodem dla edytorów kodu
 Name:		gnome-code-assistance
@@ -8,7 +19,6 @@ Group:		X11/Applications/Editors
 Source0:	http://ftp.gnome.org/pub/GNOME/sources/gnome-code-assistance/3.16/%{name}-%{version}.tar.xz
 # Source0-md5:	356a034dd60271f39f3d5ce658b75f09
 URL:		https://wiki.gnome.org/Projects/CodeAssistance
-#BuildRequires:	libgee-devel >= 0.8
 BuildRequires:	gjs-devel
 BuildRequires:	glib2 >= 1:2.36
 BuildRequires:	gobject-introspection
@@ -59,6 +69,8 @@ własnego rozwiązania w każdym edytorze.
 
 %build
 %configure \
+	%{!?with_llvm:--disable-c} \
+	%{!?with_golang:--disable-go} \
 	--disable-silent-rules
 
 %{__make}
@@ -80,11 +92,15 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog NEWS README
 %dir %{_libexecdir}/gnome-code-assistance
+%if %{with llvm}
 # R: python3, llvm
 %attr(755,root,root) %{_libexecdir}/gnome-code-assistance/c
+%endif
 # R: ruby, ruby-sass
 %attr(755,root,root) %{_libexecdir}/gnome-code-assistance/css
+%if %{with golang}
 %attr(755,root,root) %{_libexecdir}/gnome-code-assistance/go
+%endif
 # R: gjs
 %attr(755,root,root) %{_libexecdir}/gnome-code-assistance/js
 # R: python3, python3-simplejson
