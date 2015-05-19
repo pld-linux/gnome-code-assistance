@@ -23,8 +23,8 @@ BuildRequires:	gjs-devel
 BuildRequires:	glib2 >= 1:2.36
 BuildRequires:	gobject-introspection
 # version with just "go" executable
-BuildRequires:	golang >= 1.3
-BuildRequires:	llvm-devel
+%{?with_golang:BuildRequires:	golang >= 1.3}
+%{?with_llvm:BuildRequires:	llvm-devel}
 BuildRequires:	pkgconfig
 BuildRequires:	python3 >= 1:3.2
 BuildRequires:	python3-dbus
