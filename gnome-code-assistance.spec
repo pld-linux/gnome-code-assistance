@@ -50,6 +50,10 @@ Requires:	ruby-dbus
 Requires:	ruby-sass >= 3.3
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
+%if %{with golang}
+%define		_enable_debug_packages	0
+%endif
+
 %description
 gnome-code-assistance is a project which aims to provide common code
 assistance services for code editors (simple editors as well as IDEs).
