@@ -86,7 +86,10 @@ rm -rf $RPM_BUILD_ROOT
 	DESTDIR=$RPM_BUILD_ROOT
 
 %{__sed} -i -e '1s,/usr/bin/env gjs,/usr/bin/gjs,' $RPM_BUILD_ROOT%{_libexecdir}/gnome-code-assistance/js
-%{__sed} -i -e '1s,/usr/bin/env python3,/usr/bin/python3,' $RPM_BUILD_ROOT%{_libexecdir}/gnome-code-assistance/{c,json,python,sh,xml}
+%if %{with llvm}
+%{__sed} -i -e '1s,/usr/bin/env python3,/usr/bin/python3,' $RPM_BUILD_ROOT%{_libexecdir}/gnome-code-assistance/c
+%endif
+%{__sed} -i -e '1s,/usr/bin/env python3,/usr/bin/python3,' $RPM_BUILD_ROOT%{_libexecdir}/gnome-code-assistance/{json,python,sh,xml}
 %{__sed} -i -e '1s,/usr/bin/env ruby,/usr/bin/ruby,' $RPM_BUILD_ROOT%{_libexecdir}/gnome-code-assistance/{css,ruby}
 
 %clean
