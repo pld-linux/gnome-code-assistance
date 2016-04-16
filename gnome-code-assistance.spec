@@ -3,7 +3,7 @@
 %bcond_without	llvm	# (LLVM based) C backend
 %bcond_without	golang	# Go backend
 #
-%ifarch x32 ppc64
+%ifarch ppc64
 %undefine	with_llvm
 %endif
 %ifnarch %{ix86} %{x8664} %{arm}
