@@ -13,11 +13,12 @@ Summary:	Common code assistance services for code editors
 Summary(pl.UTF-8):	Wspólne usługi wspierające pracę z kodem dla edytorów kodu
 Name:		gnome-code-assistance
 Version:	3.16.1
-Release:	2
+Release:	3
 License:	GPL v2+
 Group:		X11/Applications/Editors
 Source0:	http://ftp.gnome.org/pub/GNOME/sources/gnome-code-assistance/3.16/%{name}-%{version}.tar.xz
 # Source0-md5:	5579574b1102abb21b2f5e64d619b153
+Patch0:		vala-0.36.patch
 URL:		https://wiki.gnome.org/Projects/CodeAssistance
 BuildRequires:	gjs-devel
 BuildRequires:	glib2 >= 1:2.36
@@ -70,6 +71,7 @@ własnego rozwiązania w każdym edytorze.
 
 %prep
 %setup -q
+%patch0 -p1
 
 %build
 %{__aclocal}

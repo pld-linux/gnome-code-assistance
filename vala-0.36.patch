@@ -1,0 +1,173 @@
+From b6097f3007fe29545d44ef4def120261b36fdac9 Mon Sep 17 00:00:00 2001
+From: Jesse van den Kieboom <jkieboom@esri.com>
+Date: Sat, 5 Nov 2016 13:33:16 +0100
+Subject: [PATCH 1/3] Add libvala-0.36 support
+
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 40b7c96..008c2ac 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -410,7 +410,7 @@ AC_ARG_ENABLE([vala],
+               [enable_vala=$enableval],
+               [enable_vala=auto])
+ 
+-BACKEND_VALA_LIBVALA_VERSIONS="libvala-0.34 libvala-0.32 libvala-0.30 libvala-0.28 libvala-0.26 libvala-0.24 libvala-0.22 libvala-0.20"
++BACKEND_VALA_LIBVALA_VERSIONS="libvala-0.36 libvala-0.34 libvala-0.32 libvala-0.30 libvala-0.28 libvala-0.26 libvala-0.24 libvala-0.22 libvala-0.20"
+ BACKEND_VALA_MODULES="gobject-2.0 >= 2.36 glib-2.0 >= 2.36 gio-2.0 >= 2.36 gee-0.8 gio-unix-2.0 >= 2.36"
+ 
+ BACKEND_VALA_LIBVALA=
+-- 
+1.8.3.1
+
+
+From 1e0041458b00a1d2cd91c21c322e46153ba69bdc Mon Sep 17 00:00:00 2001
+From: Jesse van den Kieboom <jessevdk@gnome.org>
+Date: Sun, 6 Nov 2016 01:28:12 -0800
+Subject: [PATCH 2/3] Small code style cleanup
+
+---
+ backends/vala/valaoptionparser.vala | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/backends/vala/valaoptionparser.vala b/backends/vala/valaoptionparser.vala
+index 03766a2..0aaad79 100644
+--- a/backends/vala/valaoptionparser.vala
++++ b/backends/vala/valaoptionparser.vala
+@@ -187,6 +187,7 @@ class OptionParser {
+ 		context.thread = thread;
+ 		context.mem_profiler = mem_profiler;
+ 		context.save_temps = save_temps;
++
+ 		if (profile == "gobject-2.0" || profile == "gobject" || profile == null) {
+ 			// default profile
+ 			context.profile = Profile.GOBJECT;
+@@ -194,6 +195,7 @@ class OptionParser {
+ 		} else {
+ 			Report.error (null, "Unknown profile %s".printf (profile));
+ 		}
++
+ 		nostdpkg |= fast_vapi_filename != null;
+ 		context.nostdpkg = nostdpkg;
+ 
+@@ -213,12 +215,14 @@ class OptionParser {
+ 
+ 		int glib_major = 2;
+ 		int glib_minor = 18;
++
+ 		if (target_glib != null && target_glib.scanf ("%d.%d", out glib_major, out glib_minor) != 2) {
+ 			Report.error (null, "Invalid format for --target-glib");
+ 		}
+ 
+ 		context.target_glib_major = glib_major;
+ 		context.target_glib_minor = glib_minor;
++
+ 		if (context.target_glib_major != 2) {
+ 			Report.error (null, "This version of valac only supports GLib 2");
+ 		}
+-- 
+1.8.3.1
+
+
+From 508e157a08eda979683d130bd779792ee4d90d58 Mon Sep 17 00:00:00 2001
+From: Jesse van den Kieboom <jessevdk@gnome.org>
+Date: Sun, 6 Nov 2016 01:27:49 -0800
+Subject: [PATCH 3/3] Fix compilation with vala 0.36
+
+https://bugzilla.gnome.org/show_bug.cgi?id=772861
+---
+ backends/vala/Makefile.am           |  4 ++++
+ backends/vala/valaoptionparser.vala |  4 ++++
+ configure.ac                        | 25 +++++++++++++++++++++----
+ 3 files changed, 29 insertions(+), 4 deletions(-)
+
+diff --git a/backends/vala/Makefile.am b/backends/vala/Makefile.am
+index dc3d5e0..4799429 100644
+--- a/backends/vala/Makefile.am
++++ b/backends/vala/Makefile.am
+@@ -34,6 +34,10 @@ if ENABLE_DEBUG
+ backends_vala_common_valaflags += --debug -X -O0
+ endif
+ 
++if BACKENDS_VALA_ENABLE_VALA_CODE_CONTEXT_SET_THREAD
++backends_vala_common_valaflags += -D ENABLE_VALA_CODE_CONTEXT_SET_THREAD
++endif
++
+ backends_vala_libvalashared_la_VALAFLAGS =	\
+ 	$(backends_vala_common_valaflags)	\
+ 	--library libvalashared			\
+diff --git a/backends/vala/valaoptionparser.vala b/backends/vala/valaoptionparser.vala
+index 0aaad79..5ca5643 100644
+--- a/backends/vala/valaoptionparser.vala
++++ b/backends/vala/valaoptionparser.vala
+@@ -184,7 +184,11 @@ class OptionParser {
+ 		context.gir_directories = realpaths(wd, gir_directories);
+ 		context.metadata_directories = realpaths(wd, metadata_directories);
+ 		context.debug = debug;
++
++#if ENABLE_VALA_CODE_CONTEXT_SET_THREAD
+ 		context.thread = thread;
++#endif
++
+ 		context.mem_profiler = mem_profiler;
+ 		context.save_temps = save_temps;
+ 
+diff --git a/configure.ac b/configure.ac
+index 008c2ac..00bfc45 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -414,6 +414,7 @@ BACKEND_VALA_LIBVALA_VERSIONS="libvala-0.36 libvala-0.34 libvala-0.32 libvala-0.
+ BACKEND_VALA_MODULES="gobject-2.0 >= 2.36 glib-2.0 >= 2.36 gio-2.0 >= 2.36 gee-0.8 gio-unix-2.0 >= 2.36"
+ 
+ BACKEND_VALA_LIBVALA=
++
+ for i in $BACKEND_VALA_LIBVALA_VERSIONS; do
+ 	if test "x$BACKEND_VALA_LIBVALA" = "x"; then
+ 		BACKEND_VALA_LIBVALA="$i"
+@@ -428,10 +429,6 @@ for i in $BACKEND_VALA_LIBVALA_VERSIONS; do
+ 	fi
+ done
+ 
+-if test "x$libvala_found" != "xyes"; then
+-	BACKEND_VALA_MODULES="$BACKEND_VALA_MODULES $BACKEND_VALA_LIBVALA"
+-fi
+-
+ AC_SUBST(BACKEND_VALA_LIBVALA)
+ 
+ if test "x$enable_vala" != "xno"; then
+@@ -467,9 +464,29 @@ if test "x$enable_vala" != "xno"; then
+ 	fi
+ fi
+ 
++# Check for deprecated threading support
++AS_IF([test x$enable_vala = xyes],[
++	cflags_save="${CFLAGS}"
++	libs_save="${LIBS}"
++	CFLAGS="${CFLAGS} ${BACKEND_VALA_CFLAGS}"
++	LIBS="${LIBS} ${BACKEND_VALA_LIBS}"
++
++	AC_MSG_CHECKING([if vala CodeContext supports thread property])
++
++	AC_TRY_LINK([#include <vala.h>],[
++		vala_code_context_set_thread (NULL, TRUE);
++	], [have_vala_code_context_set_thread=yes], [have_vala_code_context_set_thread=no])
++
++	CFLAGS="${cflags_save}"
++	LIBS="${libs_save}"
++])
++AC_MSG_RESULT([$have_vala_code_context_set_thread])
++
+ color_enable_var("$enable_vala", [enable_vala_msg])
+ 
+ AM_CONDITIONAL(BACKENDS_VALA_ENABLE, test "x$enable_vala" = "xyes")
++AM_CONDITIONAL(BACKENDS_VALA_ENABLE_VALA_CODE_CONTEXT_SET_THREAD, test x$have_vala_code_context_set_thread = xyes)
++
+ AC_SUBST(BACKEND_VALA_LIBVALA)
+ 
+ 
+-- 
+1.8.3.1
+
